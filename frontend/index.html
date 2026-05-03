@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="es"><head>
+  <meta charset="UTF-8"><title>CloudBoard</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:600px;margin:40px auto;padding:0 20px}
+    input,textarea{width:100%;margin-bottom:10px;padding:8px;box-sizing:border-box}
+    button{background:#2563EB;color:white;border:none;padding:10px 20px;cursor:pointer}
+    .note{border:1px solid #e5e7eb;padding:15px;margin-top:10px;border-radius:4px}
+  </style></head><body>
+  <h1>☁ CloudBoard</h1>
+  <input id="title" placeholder="Título de la nota">
+  <textarea id="content" rows="4" placeholder="Escribe tu nota..."></textarea>
+  <button onclick="createNote()">Guardar nota</button>
+  <div id="notes"></div>
+  <script>
+    const API='https://fe9ow6g3xf.execute-api.us-east-1.amazonaws.com/prod';
+    async function loadNotes(){
+      const data=await(await fetch(API+'/notes')).json();
+      const notes=JSON.parse(data.body);
+      document.getElementById('notes').innerHTML=notes
+        .map(n=>`<div class="note"><strong>${n.title}</strong><p>${n.content}</p>
+          <button onclick="deleteNote('${n.id}')">Eliminar</button></div>`).join('');
+    }
+    async function createNote(){
+      await fetch(API+'/notes',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title:document.getElementById('title').value,
+          content:document.getElementById('content').value})});
+      loadNotes();
+    }
+    async function deleteNote(id){
+      await fetch(API+'/notes/'+id,{method:'DELETE'});loadNotes();
+    }
+    loadNotes();
+  </script></body></html>
+
